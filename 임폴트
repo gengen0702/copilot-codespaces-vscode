@@ -1,0 +1,53 @@
+import math
+
+class Flight:
+    def __init__(self, name, fuel_rate, speed, tank_capacity):
+        self.name = name
+        self.fuel_rate = fuel_rate
+        self.speed = speed
+        self.tank_capacity = tank_capacity
+
+    def calculate_fuel(self, distance):
+        flight_time = distance / self.speed
+        fuel_needed = flight_time * self.fuel_rate
+        return math.ceil(fuel_needed)
+
+    def can_fly(self, distance):
+        return self.calculate_fuel(distance) <= self.tank_capacity
+
+# 공항 간 거리 정보 (예시)
+airport_distances = {
+    ("김포", "제주"): 451,
+    ("김포", "부산"): 327,
+    ("인천", "도쿄"): 1258,
+    ("인천", "베이징"): 904,
+    ("인천", "로스앤젤레스"): 9633,
+    ("김포", "광주"): 268,
+    ("인천", "런던"): 8886
+}
+
+# 항공기 리스트
+flights = [
+    Flight("Boeing 747", 12000, 900, 183380),
+    Flight("Airbus A320", 2500, 830, 27200),
+    Flight("Boeing 787", 5600, 907, 126206)
+]
+
+# 사용자 입력
+start = input("출발 공항을 입력하세요: ")
+end = input("도착 공항을 입력하세요: ")
+
+# 거리 가져오기
+key = (start, end)
+if key not in airport_distances:
+    print(" 해당 공항 간 거리 정보가 없습니다.")
+else:
+    distance = airport_distances[key]
+    print(f"\n {start}  {end} 거리: {distance} km")
+    print("\n 항공기별 예상 연료 소비량 ")
+
+    for flight in flights:
+        fuel_needed = flight.calculate_fuel(distance)
+        status = "비행 가능 " if flight.can_fly(distance) else "연료 부족 "
+        print(f"{flight.name}: {fuel_needed} ℓ ({status})")
+
