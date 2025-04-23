@@ -1,53 +1,76 @@
 import math
 
-class Flight:
-    def __init__(self, name, fuel_rate, speed, tank_capacity):
+# 지구 반지름 (km)
+EARTH_RADIUS = 6371.0
+
+# 공항 정보 클래스
+class Airport:
+    def __init__(self, name, latitude, longitude):
         self.name = name
-        self.fuel_rate = fuel_rate
-        self.speed = speed
-        self.tank_capacity = tank_capacity
+        self.lat = latitude
+        self.lon = longitude
 
-    def calculate_fuel(self, distance):
-        flight_time = distance / self.speed
-        fuel_needed = flight_time * self.fuel_rate
-        return math.ceil(fuel_needed)
+# 거리 계산 (하버사인 공식)
+def haversine_distance(airport1, airport2):
+    lat1 = math.radians(airport1.lat)
+    lon1 = math.radians(airport1.lon)
+    lat2 = math.radians(airport2.lat)
+    lon2 = math.radians(airport2.lon)
 
-    def can_fly(self, distance):
-        return self.calculate_fuel(distance) <= self.tank_capacity
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
 
-# 공항 간 거리 정보 (예시)
-airport_distances = {
-    ("김포", "제주"): 451,
-    ("김포", "부산"): 327,
-    ("인천", "도쿄"): 1258,
-    ("인천", "베이징"): 904,
-    ("인천", "로스앤젤레스"): 9633,
-    ("김포", "광주"): 268,
-    ("인천", "런던"): 8886
-}
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
 
-# 항공기 리스트
-flights = [
-    Flight("Boeing 747", 12000, 900, 183380),
-    Flight("Airbus A320", 2500, 830, 27200),
-    Flight("Boeing 787", 5600, 907, 126206)
+    return EARTH_RADIUS * c
+
+# 중간 지점 계산 (간단한 평균 방식)
+def midpoint(airport1, airport2):
+    mid_lat = (airport1.lat + airport2.lat) / 2
+    mid_lon = (airport1.lon + airport2.lon) / 2
+    return (mid_lat, mid_lon)
+
+# 공항 이름으로 객체 찾기
+def find_airport_by_name(name, airport_list):
+    for airport in airport_list:
+        if name.lower() in airport.name.lower():
+            return airport
+    return None
+
+# 공항 리스트
+airports = [
+    Airport("Incheon International Airport (ICN)", 37.4602, 126.4407),
+    Airport("Narita International Airport (NRT)", 35.7653, 140.3856),
+    Airport("Beijing Capital International Airport (PEK)", 40.0799, 116.6031),
+    Airport("Los Angeles International Airport (LAX)", 33.9416, -118.4085)
 ]
 
-# 사용자 입력
-start = input("출발 공항을 입력하세요: ")
-end = input("도착 공항을 입력하세요: ")
+# 사용자 입력 받기
+input1 = input("첫 번째 공항 이름을 입력하세요 (예: Incheon): ")
+input2 = input("두 번째 공항 이름을 입력하세요 (예: Narita): ")
 
-# 거리 가져오기
-key = (start, end)
-if key not in airport_distances:
-    print(" 해당 공항 간 거리 정보가 없습니다.")
+airport1 = find_airport_by_name(input1, airports)
+airport2 = find_airport_by_name(input2, airports)
+
+# 결과 출력
+if airport1 and airport2:
+    distance = haversine_distance(airport1, airport2)
+    mid_lat, mid_lon = midpoint(airport1, airport2)
+
+    print(f"\n[{airport1.name}]와 [{airport2.name}] 사이 거리: {distance:.2f} km")
+    print(f"중간 위치 (위도, 경도): ({mid_lat:.4f}, {mid_lon:.4f})")
 else:
-    distance = airport_distances[key]
-    print(f"\n {start}  {end} 거리: {distance} km")
-    print("\n 항공기별 예상 연료 소비량 ")
+    print("\n 입력한 공항 이름을 찾을 수 없습니다. 다시 확인해주세요.")
 
-    for flight in flights:
-        fuel_needed = flight.calculate_fuel(distance)
-        status = "비행 가능 " if flight.can_fly(distance) else "연료 부족 "
-        print(f"{flight.name}: {fuel_needed} ℓ ({status})")
+]
 
+# 예시: 인천과 나리타 사이 거리 및 중간 위치
+airport1 = airports[0]  # ICN
+airport2 = airports[1]  # NRT
+
+distance = haversine_distance(airport1, airport2)
+mid_lat, mid_lon = midpoint(airport1, airport2)
+
+print(f"\n [{airport1.name}]와 [{airport2.name}] 사이 거리: {distance:.2f} km")
+print(f" 중간 위치 (위도, 경도): ({mid_lat:.4f}, {mid_lon:.4f})")
